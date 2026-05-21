@@ -2,6 +2,10 @@
 
 Notable changes per release. Tagged commits use `vX.Y.Z` shortform.
 
+## v0.11.10 — 2026-05-21
+
+- Fixed: arrow keys, Home, and End now navigate correctly inside ncurses TUIs (mc, dialog, …). The pinned `xterm-256color` terminfo declares cursor keys in SS3 form (`kcuu1=\EOA`, `khome=\EOH`, `kend=\EOF`), which ncurses matches strictly after the app calls `smkx` (application cursor mode); kooky was emitting only the CSI form (`\e[A`), so the bytes leaked through as literal characters and mc's panels refused to scroll. Unmodified arrows + Home/End now send SS3 form, modified variants keep the CSI-with-mod-digit shape. Shells / readline / zle / vim / nvim bind both forms to the same action, so interactive prompts see no change.
+
 ## v0.11.8 — 2026-05-19
 
 - Fixed: switching back to a tab or workspace whose pane had been printing output in the background no longer leaves the buffer "creeping upward" — the cursor row is correctly pinned to the bottom on re-attach. AppKit detaches the surface view when a tab/workspace is swapped out, and any output streamed in while it was off-screen left libghostty's viewport anchored above the cursor. On re-attach AppKit skips `setFrameSize` when the frame is unchanged, so the existing size-driven re-anchor in `propagateSizeToSurface` didn't fire. `viewDidMoveToWindow` now invokes libghostty's `scroll_to_bottom` binding action explicitly on the no-frame-change re-attach path, mirroring the same-name guard already used in the size path. First-mount is excluded — the empty surface has nothing to anchor.
